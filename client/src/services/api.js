@@ -9,15 +9,44 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important for CSRF cookies
 });
+
+// CSRF token storage
+let csrfToken = null;
+
+// Function to get CSRF token
+const getCsrfToken = async () => {
+  if (csrfToken) return csrfToken;
+  
+  try {
+    const response = await axios.get(`${API_URL}/csrf-token`, {
+      withCredentials: true,
+    });
+    csrfToken = response.data.csrfToken;
+    return csrfToken;
+  } catch (error) {
+    console.error('Error fetching CSRF token:', error);
+    return null;
+  }
+};
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add CSRF token for state-changing requests
+    if (['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())) {
+      const csrf = await getCsrfToken();
+      if (csrf) {
+        config.headers['CSRF-Token'] = csrf;
+      }
+    }
+    
     return config;
   },
   (error) => {

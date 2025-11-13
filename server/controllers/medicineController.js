@@ -1,6 +1,7 @@
 import Medicine from '../models/Medicine.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { getTenantFilter } from '../middleware/tenant.js';
+import { escapeRegex } from '../utils/sanitize.js';
 
 /**
  * Get all medicines
@@ -12,7 +13,7 @@ export const getAllMedicines = async (req, res, next) => {
 
     if (pharmacyId) filter.pharmacyId = pharmacyId;
     if (category) filter.category = category;
-    if (name) filter.name = new RegExp(name, 'i');
+    if (name) filter.name = new RegExp(escapeRegex(name), 'i');
 
     let medicines = await Medicine.find(filter).populate('pharmacyId', 'name address phone');
 

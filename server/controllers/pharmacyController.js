@@ -2,6 +2,7 @@ import Pharmacy from '../models/Pharmacy.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { getTenantFilter } from '../middleware/tenant.js';
 import geolocationService from '../services/geolocationService.js';
+import { escapeRegex } from '../utils/sanitize.js';
 
 /**
  * Get all pharmacies
@@ -11,8 +12,8 @@ export const getAllPharmacies = async (req, res, next) => {
     const filter = getTenantFilter(req, { isActive: true });
     const { city, state, lat, lng, radius } = req.query;
 
-    if (city) filter['address.city'] = new RegExp(city, 'i');
-    if (state) filter['address.state'] = new RegExp(state, 'i');
+    if (city) filter['address.city'] = new RegExp(escapeRegex(city), 'i');
+    if (state) filter['address.state'] = new RegExp(escapeRegex(state), 'i');
 
     let pharmacies;
 

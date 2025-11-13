@@ -5,9 +5,11 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
 import connectDB from './config/database.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
+import { sanitizeMiddleware } from './middleware/sanitize.js';
 
 // Import routes
 import authRoutes from './routes/auth.routes.js';
@@ -39,10 +41,16 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies
 
+// Input sanitization to prevent NoSQL injection
+app.use(sanitizeMiddleware);
+
+// CSRF protection for routes that modify data
+const csrfProtection = csrf({ cookie: true });
+
 // Rate limiting
 app.use('/api/', rateLimiter);
 
-// Health check endpoint
+// Health check endpoint (no CSRF needed for GET)
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
@@ -51,14 +59,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes
+// CSRF token endpoint
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// API Routes - Apply CSRF protection to state-changing operations
 app.use('/api/auth', authRoutes);
-app.use('/api/clinics', clinicRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/integrations', integrationRoutes);
-app.use('/api/pharmacies', pharmacyRoutes);
-app.use('/api/medicines', medicineRoutes);
+app.use('/api/clinics', csrfProtection, clinicRoutes);
+app.use('/api/appointments', csrfProtection, appointmentRoutes);
+app.use('/api/patients', csrfProtection, patientRoutes);
+app.use('/api/integrations', csrfProtection, integrationRoutes);
+app.use('/api/pharmacies', csrfProtection, pharmacyRoutes);
+app.use('/api/medicines', csrfProtection, medicineRoutes);
 
 // 404 handler
 app.use((req, res) => {
