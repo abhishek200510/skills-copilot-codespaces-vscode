@@ -1,0 +1,37 @@
+{
+  "name": "mern-multi-tenant-crm",
+  "version": "1.0.0",
+  "description": "Multi-tenant CRM web application for medical clinics and hospitals",
+  "main": "index.js",
+  "scripts": {
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "install-all": "npm run install-server && npm run install-client",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "build-server": "cd server && npm run build",
+    "start": "cd server && npm start",
+    "lint": "cd server && npm run lint && cd ../client && npm run lint",
+    "lint:fix": "cd server && npm run lint:fix && cd ../client && npm run lint:fix",
+    "test": "cd server && npm test && cd ../client && npm test",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test"
+  },
+  "keywords": [
+    "MERN",
+    "CRM",
+    "multi-tenant",
+    "medical",
+    "clinic",
+    "hospital",
+    "appointment",
+    "pharmacy"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
